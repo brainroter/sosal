@@ -75,7 +75,7 @@
         canvas.height = window.innerHeight - 150;
 
         function initAudio() {
-            audio = new Audio('xtal.mp4');
+            audio = new Audio('mus\xtal.mp4');
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
             analyser = audioContext.createAnalyser();
             source = audioContext.createMediaElementSource(audio);
