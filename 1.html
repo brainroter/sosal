@@ -1,0 +1,198 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Пошлая Молли-Паки Пусси</title>
+    <style>
+        body {
+            margin: 0;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            color: white;
+        }
+
+        canvas {
+            display: block;
+            margin-bottom: 20px;
+        }
+
+        #player, #controls {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+            #player button, #controls button {
+                background: none;
+                border: none;
+                color: white;
+                font-size: 24px;
+                cursor: pointer;
+            }
+
+        #progress, #waveStrength {
+            width: 200px;
+            margin: 0 10px;
+        }
+
+        #close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <a href="новый проект.html" id="close">✖</a>
+    <canvas id="canvas"></canvas>
+    <div id="controls">
+        <span>Сила волн:</span>
+        <input type="range" id="waveStrength" min="0" max="2" step="0.1" value="1">
+    </div>
+    <div id="player">
+        <button id="playPause">▶</button>
+        <input type="range" id="progress" min="0" max="100" value="0">
+        <span id="time">0:00 / 0:00</span>
+    </div>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let audioContext, analyser, source;
+        let audio;
+        let waveStrengthMultiplier = 1;
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight - 150; 
+
+        function initAudio() {
+            audio = new Audio('poshmoll.mp3');
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioContext.createAnalyser();
+            source = audioContext.createMediaElementSource(audio);
+            source.connect(analyser);
+            analyser.connect(audioContext.destination);
+            analyser.fftSize = 256;
+
+            setupPlayer();
+        }
+
+        function drawNeonCircle(centerX, centerY, radius, color, blur) {
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.shadowBlur = blur;
+            ctx.shadowColor = color;
+            ctx.stroke();
+        }
+
+        function visualize() {
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+
+            function draw() {
+                requestAnimationFrame(draw);
+
+                analyser.getByteFrequencyData(dataArray);
+
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const radius = Math.min(centerX, centerY) * 0.8;
+
+                drawNeonCircle(centerX, centerY, radius, 'rgba(0, 255, 255, 0.5)', 10);
+
+                for (let i = 0; i < bufferLength; i++) {
+                    const barHeight = dataArray[i] * waveStrengthMultiplier * 0.5;
+                    const angle = (i / bufferLength) * Math.PI * 2 - Math.PI / 2;
+                    const x = centerX + Math.cos(angle) * (radius - barHeight);
+                    const y = centerY + Math.sin(angle) * (radius - barHeight);
+
+                    const hue = i / bufferLength * 360;
+                    ctx.strokeStyle = `hsl(${hue}, 100%, 50%)`;
+                    ctx.lineWidth = 3;
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = `hsl(${hue}, 100%, 50%)`;
+                    ctx.beginPath();
+                    ctx.moveTo(centerX + Math.cos(angle) * radius, centerY + Math.sin(angle) * radius);
+                    ctx.lineTo(x, y);
+                    ctx.stroke();
+                }
+            }
+
+            draw();
+        }
+
+        function setupPlayer() {
+            const playPauseBtn = document.getElementById('playPause');
+            const progressBar = document.getElementById('progress');
+            const timeDisplay = document.getElementById('time');
+            const waveStrengthSlider = document.getElementById('waveStrength');
+
+            playPauseBtn.addEventListener('click', () => {
+                if (audio.paused) {
+                    audio.play();
+                    playPauseBtn.textContent = '| |';
+                } else {
+                    audio.pause();
+                    playPauseBtn.textContent = '▶';
+                }
+            });
+
+            progressBar.addEventListener('input', () => {
+                const time = (progressBar.value / 100) * audio.duration;
+                audio.currentTime = time;
+            });
+
+            audio.addEventListener('timeupdate', () => {
+                const progress = (audio.currentTime / audio.duration) * 100;
+                progressBar.value = progress;
+
+                const currentMinutes = Math.floor(audio.currentTime / 60);
+                const currentSeconds = Math.floor(audio.currentTime % 60);
+                const durationMinutes = Math.floor(audio.duration / 60);
+                const durationSeconds = Math.floor(audio.duration % 60);
+
+                timeDisplay.textContent = `${currentMinutes}:${currentSeconds.toString().padStart(2, '0')} / ${durationMinutes}:${durationSeconds.toString().padStart(2, '0')}`;
+            });
+
+            waveStrengthSlider.addEventListener('input', () => {
+                waveStrengthMultiplier = parseFloat(waveStrengthSlider.value);
+            });
+        }
+
+        canvas.addEventListener('click', () => {
+            if (!audioContext) {
+                initAudio();
+                visualize();
+            }
+        });
+
+        ctx.fillStyle = 'white';
+        ctx.font = '20px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Нажмите на экран, чтобы начать/остановить воспроизведение', canvas.width / 2, canvas.height / 2);
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight - 150;
+            ctx.fillStyle = 'white';
+            ctx.font = '20px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Нажмите на экран, чтобы начать/остановить воспроизведение', canvas.width / 2, canvas.height / 2);
+        });
+    </script>
+</body>
+</html>

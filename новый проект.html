@@ -1,0 +1,375 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Музыкальный стриминг</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 230px;
+            background-color: #000000;
+            padding: 20px;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            color: #46ff87;
+        }
+
+        .menu-item {
+            margin-bottom: 15px;
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+            .menu-item:hover {
+                animation: pulse 0.5s infinite;
+            }
+
+            .menu-item:active {
+                background-color: white;
+                color: #000000;
+            }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        .header {
+            display: flex;
+            justify-content: flex-end;
+            padding: 20px;
+        }
+
+        .button {
+            background-color: #1DB954;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+            .button:hover {
+                background-color: white;
+                color: #1DB954;
+            }
+
+            .button:active {
+                background-color: white;
+                color: #1DB954;
+            }
+
+        .registration-form {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.5s forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+            }
+        }
+
+        .form-content {
+            background-color: #282828;
+            padding: 40px;
+            border-radius: 10px;
+            text-align: center;
+            position: relative;
+        }
+
+            .form-content h2 {
+                margin-bottom: 20px;
+            }
+
+            .form-content input {
+                display: block;
+                width: 100%;
+                padding: 10px;
+                margin-bottom: 10px;
+                border: none;
+                border-radius: 5px;
+            }
+
+            .form-content button {
+                background-color: #1DB954;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 20px;
+                cursor: pointer;
+                margin-top: 10px;
+                transition: background-color 0.3s, color 0.3s;
+            }
+
+                .form-content button:hover {
+                    background-color: white;
+                    color: #1DB954;
+                }
+
+                .form-content button:active {
+                    background-color: white;
+                    color: #1DB954;
+                }
+
+        .close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #ffffff;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 22px;
+            margin-bottom: 15px;
+        }
+
+        .album-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+        }
+
+        .album-item {
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s, color 0.3s;
+        }
+
+        .album-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            background-size: cover;
+            background-position: center;
+            transition: transform 0.3s, filter 0.3s;
+        }
+
+        .album-item:hover .album-image {
+            transform: scale(0.9);
+            filter: brightness(0.7);
+        }
+
+        .album-item:hover div {
+            font-size: 18px;
+        }
+
+        .album-image1 {
+            background-image: url('posh_molly.jpg');
+        }
+
+        .album-image2 {
+            background-image: url('serega.jpg');
+        }
+
+        .album-image3 {
+            background-image: url('molot.jpg');
+        }
+
+        .album-image4 {
+            background-image: url('7I.jpg');
+        }
+
+        .search-message, .unregistered-message {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #282828;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            animation: fadeInOut 3s forwards;
+        }
+
+        @keyframes fadeInOut {
+            0% {
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 1;
+            }
+
+            80% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo">МузыкаПлюс</div>
+            <div class="menu-item">Главная</div>
+            <div class="menu-item" id="searchButton">Поиск</div>
+            <div class="menu-item" id="myLibraryButton">Профиль</div>
+        </div>
+        <div class="main-content">
+            <div class="header">
+                <button class="button" id="loginButton" onclick="showRegistrationForm()">Войти</button>
+            </div>
+            <div class="section">
+                <h2 class="section-title">Популярные песни</h2>
+                <div class="album-grid">
+                    <div class="album-item" onclick="location.href='1.html'">
+                        <div class="album-image album-image1"></div>
+                        <div>Пошлая Молли - Паки пуси</div>
+                    </div>
+                    <div class="album-item" onclick="location.href='2.html'">
+                        <div class="album-image album-image2"></div>
+                        <div>Серега Пират - Гимн Дахака</div>
+                    </div>
+                    <div class="album-item" onclick="location.href='3.html'">
+                        <div class="album-image album-image3"></div>
+                        <div>М8Л8ТХ - Слезы Осени</div>
+                    </div>
+                    <div class="album-item" onclick="location.href='4.html'">
+                        <div class="album-image album-image4"></div>
+                        <div>Aphex Twin - Xtal</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="registration-form" id="registrationForm">
+        <div class="form-content">
+            <span class="close-button" onclick="closeRegistrationForm()">&times;</span>
+            <h2>Зарегистрируйтесь и погрузитесь в музыку</h2>
+            <input type="email" id="emailInput" placeholder="Электронная почта" required>
+            <input type="text" id="nicknameInput" placeholder="Ваш ник" required>
+            <button onclick="submitRegistration()">Далее</button>
+        </div>
+    </div>
+
+    <div class="search-message" id="searchMessage">
+        Упс, у нас доступно только 4 песни
+    </div>
+
+    <div class="unregistered-message" id="unregisteredMessage">
+        Не зарегистрирован
+    </div>
+
+    <script>
+        function showRegistrationForm() {
+            const form = document.getElementById('registrationForm');
+            form.style.display = 'flex';
+            form.style.animation = 'fadeIn 0.5s forwards';
+        }
+
+        function closeRegistrationForm() {
+            const form = document.getElementById('registrationForm');
+            form.style.animation = 'fadeOut 0.5s forwards';
+            setTimeout(() => form.style.display = 'none', 500);
+        }
+
+        function submitRegistration() {
+            const email = document.getElementById('emailInput').value;
+            const nickname = document.getElementById('nicknameInput').value;
+
+            if (email && nickname) {
+                updateLoginButton(nickname);
+                closeRegistrationForm();
+            } else {
+                alert('Пожалуйста, заполните все поля');
+            }
+        }
+
+        function updateLoginButton(nickname) {
+            const loginButton = document.getElementById('loginButton');
+            loginButton.textContent = nickname;
+            loginButton.onclick = null;
+        }
+
+        document.getElementById('searchButton').addEventListener('click', function () {
+            const searchMessage = document.getElementById('searchMessage');
+            searchMessage.style.display = 'block';
+
+            setTimeout(function () {
+                searchMessage.style.display = 'none';
+            }, 3000);
+        });
+
+        document.getElementById('myLibraryButton').addEventListener('click', function () {
+            const email = document.getElementById('emailInput').value;
+            const nickname = document.getElementById('nicknameInput').value;
+            const unregisteredMessage = document.getElementById('unregisteredMessage');
+
+            if (email && nickname) {
+                alert(`Профиль\nПочта: ${email}\nНик: ${nickname}`);
+            } else {
+                unregisteredMessage.style.display = 'block';
+                setTimeout(function () {
+                    unregisteredMessage.style.display = 'none';
+                }, 3000);
+            }
+        });
+    </script>
+</body>
+</html>
